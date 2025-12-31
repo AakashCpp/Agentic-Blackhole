@@ -4,6 +4,7 @@ const RawFinding = require("../model/RawFinding.model.js");
 const validationAgent = require("../agents/validationAgent.js");
 const ValidatedFinding = require("../model/ValidatedFinding.model.js");
 
+//Routes will be modified to protected routes
 router.post("/", async (req, res) => {
   try {
     const { source, target, findings } = req.body;
