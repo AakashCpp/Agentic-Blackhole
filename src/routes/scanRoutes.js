@@ -4,10 +4,6 @@ const RawFinding = require("../model/RawFinding.model.js");
 const validationAgent = require("../agents/validationAgent.js");
 const ValidatedFinding = require("../model/ValidatedFinding.model.js");
 
-/**
- * POST /api/scans
- * Ingest raw scan results
- */
 router.post("/", async (req, res) => {
   try {
     const { source, target, findings } = req.body;
