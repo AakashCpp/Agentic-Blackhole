@@ -36,65 +36,65 @@
 
 // module.exports = validationAgent;
 
+// // src/agents/validationAgent.js
+
+// const callGemini = async (text) => {
+//   // Temporary mock response
+//   return `Validated: ${text} ✅`; // Pretend Gemini returned validated info
+// };
+
+// const validationAgent = async (scanResult) => {
+//   try {
+//     // Here we would call Gemini normally
+//     const validation = await callGemini(scanResult.finding || "No finding");
+//     return {
+//       original: scanResult,
+//       validation,
+//     };
+//   } catch (error) {
+//     console.error("Validation error:", error.message);
+//     return { original: scanResult, validation: null };
+//   }
+// };
+
+// module.exports = validationAgent;
+
 // src/agents/validationAgent.js
+const callOllama = require("../config/callOllama");
 
-const callGemini = async (text) => {
-  // Temporary mock response
-  return `Validated: ${text} ✅`; // Pretend Gemini returned validated info
-};
-
+/**
+ * Validation Agent
+ * Takes a raw scan finding and validates it using an LLM.
+ * Can detect false positives, provide quick checks, and clarify the issue.
+ */
 const validationAgent = async (scanResult) => {
   try {
-    // Here we would call Gemini normally
-    const validation = await callGemini(scanResult.finding || "No finding");
+    const finding = scanResult.finding || "Unknown finding";
+
+    // Prompt for Ollama
+    const prompt = `
+You are a cybersecurity expert.
+Validate the following scan finding:
+"${finding}"
+Check if it is a real security issue or a false positive.
+Provide a concise validation message suitable for a developer.
+`;
+
+    // Call Ollama LLM locally
+    const validation = await callOllama(prompt);
+
+    // Return structured result
     return {
       original: scanResult,
       validation,
     };
   } catch (error) {
-    console.error("Validation error:", error.message);
-    return { original: scanResult, validation: null };
+    console.error("Validation Agent Error:", error.message);
+    return {
+      original: scanResult,
+      validation: "Could not validate the finding.",
+    };
   }
 };
 
 module.exports = validationAgent;
-
-// // src/agents/validationAgent.js
-// const callOllama = require("../config/callOllama");
-
-// /**
-//  * Validation Agent
-//  * Takes a raw scan finding and validates it using an LLM.
-//  * Can detect false positives, provide quick checks, and clarify the issue.
-//  */
-// const validationAgent = async (scanResult) => {
-//   try {
-//     const finding = scanResult.finding || "Unknown finding";
-
-//     // Prompt for Ollama
-//     const prompt = `
-// You are a cybersecurity expert.
-// Validate the following scan finding:
-// "${finding}"
-// Check if it is a real security issue or a false positive.
-// Provide a concise validation message suitable for a developer.
-// `;
-
-//     // Call Ollama LLM locally
-//     const validation = await callOllama(prompt);
-
-//     // Return structured result
-//     return {
-//       original: scanResult,
-//       validation
-//     };
-//   } catch (error) {
-//     console.error("Validation Agent Error:", error.message);
-//     return {
-//       original: scanResult,
-//       validation: "Could not validate the finding."
-//     };
-//   }
-// };
-
-// module.exports = validationAgent;

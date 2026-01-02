@@ -4,7 +4,7 @@ const { exec } = require("child_process");
 const callOllama = async (prompt) => {
   return new Promise((resolve, reject) => {
     // Call Ollama CLI with model "llama2" (change if needed)
-    exec(`ollama generate llama2 "${prompt}"`, (error, stdout, stderr) => {
+    exec(`ollama run llama2 "${prompt}"`, (error, stdout, stderr) => {
       if (error) {
         console.error("Ollama CLI error:", error.message);
         return reject(error);
