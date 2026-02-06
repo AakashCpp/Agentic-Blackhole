@@ -1,53 +1,69 @@
-export const reporterAgent = async (processedResult) => {
+// src/agents/reporterAgent.js
+
+const reporterAgent = async (analysisResult) => {
   try {
-    const { original, validation, rootCause, remediation } = processedResult;
+    const finding = analysisResult.finding || {};
+    const validation = analysisResult.validation || {};
+    const rootCause = analysisResult.root_cause || {};
+    const remediation = analysisResult.remediation || {};
 
-    const report = {
-      finding: {
-        title: original.finding || "Unknown Finding",
-        severity: original.severity || "UNKNOWN",
-        category: original.category || "GENERAL",
-        affectedTarget: original.target || "N/A",
-        description: original.description || "",
-      },
-
-      analysis: {
-        validation: {
-          status: validation?.status || "NOT_VALIDATED",
-          confidence: validation?.confidence || "LOW",
-          evidence: validation?.evidence || "",
+    return {
+      finding_report: {
+        finding: {
+          id: finding.id || null,
+          name: finding.name || "Unknown",
+          severity: finding.severity || "Unknown",
+          endpoint: finding.endpoint || "Unknown",
+          evidence: finding.evidence || null,
         },
 
-        rootCause: {
-          explanation: rootCause || "Root cause analysis not available",
-        },
-      },
+        analysis: {
+          validation: {
+            vulnerability_type: validation.vulnerability_type || "Unknown",
+            classification: validation.classification || "Inconclusive",
+            confidence_level: validation.confidence_level || "Low",
+            evidence_strength: validation.evidence_strength || "Weak",
+            exploitability: validation.exploitability || {},
+            justification: validation.justification || "",
+            recommended_next_step: validation.recommended_next_step || "",
+          },
 
-      remediation: {
-        priority: remediation?.priority || "MEDIUM",
-        fixType: remediation?.type || "CODE_FIX",
-        steps: remediation?.steps || [],
-        bestPractices: remediation?.bestPractices || [],
+          root_cause: {
+            category: rootCause.root_cause_category || "Unknown",
+            technical_explanation: rootCause.technical_root_cause || "",
+            affected_layer: rootCause.affected_layer || "Unknown",
+            introduced_by: rootCause.introduced_by || "Unknown",
+          },
+
+          remediation: {
+            fix_strategy: remediation.fix_strategy || "",
+            immediate_actions: remediation.immediate_actions || [],
+            code_level_changes:
+              remediation.code_level_changes || "Not applicable",
+            configuration_or_system_changes:
+              remediation.configuration_or_system_changes || "Not applicable",
+            preventive_controls: remediation.preventive_controls || [],
+            verification_steps: remediation.verification_steps || [],
+          },
+        },
       },
 
       meta: {
-        generatedBy: "Blackhole Reporter Agent",
-        timestamp: new Date().toISOString(),
-        pipelineStage: "FINAL_REPORT",
+        pipeline_stage: "completed",
+        generated_at: new Date().toISOString(),
       },
-    };
-
-    return {
-      ...processedResult,
-      report,
     };
   } catch (error) {
     console.error("Reporter Agent Error:", error.message);
 
     return {
-      ...processedResult,
-      report: null,
-      error: "Failed to generate structured report",
+      error: "Failed to assemble structured security report",
+      meta: {
+        pipeline_stage: "failed",
+        generated_at: new Date().toISOString(),
+      },
     };
   }
 };
+
+export default reporterAgent;
