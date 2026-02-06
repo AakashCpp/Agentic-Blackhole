@@ -1,31 +1,41 @@
-// src/agents/reporterAgent.js
-const callOllamaAPI = require("../config/callOllama");
-
-/**
- * Reporter Agent
- * Takes validated scan findings, root cause, and remediation
- * Generates a clear, structured summary report.
- */
-const reporterAgent = async (processedResult) => {
+export const reporterAgent = async (processedResult) => {
   try {
-    const finding = processedResult.original.finding || "Unknown finding";
-    const validation = processedResult.validation || "";
-    const rootCause = processedResult.rootCause || "";
-    const remediation = processedResult.remediation || "";
+    const { original, validation, rootCause, remediation } = processedResult;
 
-    const prompt = `
-You are a cybersecurity report generator.
-Create a concise, structured report for developers based on the following information:
+    const report = {
+      finding: {
+        title: original.finding || "Unknown Finding",
+        severity: original.severity || "UNKNOWN",
+        category: original.category || "GENERAL",
+        affectedTarget: original.target || "N/A",
+        description: original.description || "",
+      },
 
-Finding: "${finding}"
-Validation: "${validation}"
-Root Cause: "${rootCause}"
-Remediation: "${remediation}"
+      analysis: {
+        validation: {
+          status: validation?.status || "NOT_VALIDATED",
+          confidence: validation?.confidence || "LOW",
+          evidence: validation?.evidence || "",
+        },
 
-The report should be clear, actionable, and professional.
-`;
+        rootCause: {
+          explanation: rootCause || "Root cause analysis not available",
+        },
+      },
 
-    const report = await callOllamaAPI(prompt);
+      remediation: {
+        priority: remediation?.priority || "MEDIUM",
+        fixType: remediation?.type || "CODE_FIX",
+        steps: remediation?.steps || [],
+        bestPractices: remediation?.bestPractices || [],
+      },
+
+      meta: {
+        generatedBy: "Blackhole Reporter Agent",
+        timestamp: new Date().toISOString(),
+        pipelineStage: "FINAL_REPORT",
+      },
+    };
 
     return {
       ...processedResult,
@@ -33,8 +43,11 @@ The report should be clear, actionable, and professional.
     };
   } catch (error) {
     console.error("Reporter Agent Error:", error.message);
-    return { ...processedResult, report: "Could not generate report." };
+
+    return {
+      ...processedResult,
+      report: null,
+      error: "Failed to generate structured report",
+    };
   }
 };
-
-module.exports = reporterAgent;
